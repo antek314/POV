@@ -18,19 +18,30 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
+#include "tim.h"
+#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "stm32f1xx_hal.h"
+#include "stm32f1xx_it.h"
+#include "timer.h"
+#include "neopixel.h"
+#include "dma.h"
+
+
 
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+  NP32_Instance_t np_handle;
+
 
 /* USER CODE END PD */
 
@@ -74,17 +85,46 @@ int main(void)
 
   /* USER CODE BEGIN Init */
 
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  GPIO_InitStruct.Pin = GPIO_PIN_13;          // Pin PC13
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;  // Wyjście push-pull
+  GPIO_InitStruct.Pull = GPIO_NOPULL;         // Brak rezystora podciągającego
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW; // Niska prędkość przełączania
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);     // Inicjalizacja pinu
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
+  //MX_TIM2_Init(); //inicjacja timera
+
+  //HAL_TIM_Base_Start_IT(&htim2); // start z przerwaniami
 
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_TIM2_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
+  //HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
+  //init_neopixel();
+  POV_TIM_Start(3);
+
+
+  np_handle.LED_Count = 8;
+  np_handle.StartDMA_Call = Start_DMA;
+  np_handle.DMA_Busy_Flag = 0;
+  np_handle.LED_Disable_Flag = 0;
+  NP32_Init(&np_handle);
+
+  // ustawienie koloru tylko raz (np. na start)
+  NP32_SetAllLEDs_RGB(&np_handle, (NP32_RGB_t){.R=255, .G=0, .B=0});
+  NP32_Update(&np_handle);
 
   /* USER CODE END 2 */
 
@@ -95,6 +135,19 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+
+	    /*NP32_RGB_t blue = { .R = 0, .G = 0, .B = 255 };
+	    for (int i = 0; i < 4; i++) {
+	        NP32_SetLED_RGB(&np_handle, i, blue);
+	    }
+	    NP32_Update(&np_handle);*/
+
+
+	    // zmiana okresu w pętli programu
+        /*if (HAL_GPIO_ReadPin(BUTTON_GPIO_Port, BUTTON_Pin) == GPIO_PIN_SET) {
+            TIM2_Set_Period_ms(2.0f);  // Dynamiczna zmiana okresu!
+        }*/
   }
   /* USER CODE END 3 */
 }
@@ -114,7 +167,9 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI_DIV2;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL16;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -124,18 +179,20 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
 }
 
 /* USER CODE BEGIN 4 */
+
+
 
 /* USER CODE END 4 */
 

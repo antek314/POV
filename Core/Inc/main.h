@@ -31,6 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "neopixel.h"
 
 /* USER CODE END Includes */
 
@@ -41,7 +42,9 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
+typedef struct __NP32_Instance NP32_Instance_t;
 
+extern NP32_Instance_t np_handle;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/

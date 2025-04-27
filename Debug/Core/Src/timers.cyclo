@@ -1,0 +1,6 @@
+../Core/Src/timers.c:14:6:MX_TIM2_Init	1
+../Core/Src/timers.c:23:6:TIM2_Start_IT	1
+../Core/Src/timers.c:27:6:TIM2_Stop_IT	1
+../Core/Src/timers.c:34:6:HAL_TIM_Base_MspInit	2
+../Core/Src/timers.c:43:6:TIM2_Set_Period	1
+../Core/Src/timers.c:48:6:TIM2_Set_Period_ms	1

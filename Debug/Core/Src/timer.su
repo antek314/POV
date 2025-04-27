@@ -1,0 +1,3 @@
+../Core/Src/timer.c:11:6:POV_TIM_Start	24	static
+../Core/Src/timer.c:18:6:POV_TIM_Stop	8	static
+../Core/Src/timer.c:22:6:POV_TIM_SetRefreshRate	24	static
